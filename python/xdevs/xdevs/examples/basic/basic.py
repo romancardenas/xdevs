@@ -8,6 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 PHASE_DONE = "done"
 
+
 class Job:
 	
 	def __init__(self, name):
