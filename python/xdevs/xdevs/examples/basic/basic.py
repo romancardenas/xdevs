@@ -1,4 +1,3 @@
-
 from xdevs import PHASE_ACTIVE, PHASE_PASSIVE, INFINITY
 from xdevs.models import Atomic, Coupled, Port
 from xdevs.sim import Coordinator
@@ -112,7 +111,7 @@ class Transducer(Atomic):
 		
 		if self.phase == PHASE_ACTIVE:
 			if self.jobs_solved:
-				avg_ta = self.total_ta / len(self.jobs_solved)
+				avg_ta = self.total_ta / len(self.jobs_solved)  # TODO total_ta is not used -> avg_ta is always 0
 				throughput = len(self.jobs_solved) / self.clock if self.clock > 0 else 0
 			else:
 				avg_ta = 0
@@ -121,10 +120,10 @@ class Transducer(Atomic):
 			logging.info("End time: %d" % self.clock)
 			logging.info("Jobs arrived: %d" % len(self.jobs_arrived))
 			logging.info("Jobs solved: %d" % len(self.jobs_solved))
-			logging.info("Average TA: %d" % avg_ta)
-			logging.info("Throughput: %d\n" % throughput)
+			logging.info("Average TA: %3f" % avg_ta)
+			logging.info("Throughput: %.3f\n" % throughput)
 			
-			self.hold_in(PHASE_DONE, 0);
+			self.hold_in(PHASE_DONE, 0)
 		else:
 			self.passivate()
 			

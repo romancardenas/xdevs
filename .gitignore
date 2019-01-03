@@ -13,6 +13,15 @@ manifest.mf
 Debug*
 __pycache__
 
+# Python Virtual Environments
+.venv/
+venv/
+virtualenv/
+.virtualenv/
+
+# PyCharm stuff
+.idea/
+
 # Distribution / packaging
 .Python
 build/
@@ -31,3 +40,6 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# MacOS stuff
+.DS_Store
