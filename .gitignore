@@ -43,3 +43,5 @@ MANIFEST
 
 # MacOS stuff
 .DS_Store
+
+python/datacenter/

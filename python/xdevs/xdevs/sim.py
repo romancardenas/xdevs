@@ -1,9 +1,11 @@
+import _thread
+import logging
+import pickle
+from abc import ABC, abstractmethod
+from xmlrpc.server import SimpleXMLRPCServer
+
 from xdevs import INFINITY
 from xdevs.models import Atomic, Coupled
-from abc import ABC, abstractmethod
-import logging, _thread
-from xmlrpc.server import SimpleXMLRPCServer
-import pickle
 
 
 class SimulationClock:
@@ -61,7 +63,7 @@ class Simulator(AbstractSimulator):
 
     def deltfcn(self):
         t = self.clock.time
-        in_empty = self.model.in_empty()
+        in_empty = self.model.is_input_empty()
 
         if in_empty:
             if t != self.time_next:
@@ -145,10 +147,10 @@ class Coordinator(AbstractSimulator):
 
     def propagate_output(self):
         for coup in self.model.ic:
-            coup.propagate()
+            coup.propagate_values()
 
         for coup in self.model.eoc:
-            coup.propagate()
+            coup.propagate_values()
 
     def deltfcn(self):
         self.propagate_input()
@@ -161,7 +163,7 @@ class Coordinator(AbstractSimulator):
 
     def propagate_input(self):
         for coup in self.model.eic:
-            coup.propagate()
+            coup.propagate_values()
 
     def clear(self):
         for sim in self.simulators:
@@ -189,7 +191,7 @@ class Coordinator(AbstractSimulator):
                 return True
 
         if time <= self.time_next or time != time:
-            port.extend(values)
+            port.add_values(values)
             self.clock.time = time
             self.deltfcn()
             return True

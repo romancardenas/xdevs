@@ -32,7 +32,7 @@ class InitialBall(Atomic):
 
     def lambdaf(self):
         ball = Ball()
-        self.o_output.add(ball)
+        self.o_output.add_value(ball)
 
     def exit(self):
         pass
@@ -67,7 +67,7 @@ class Player(Atomic):
         self.clock += e
         if self.phase == PHASE_WAIT:
             if self.i_input:
-                job = self.i_input.get()
+                job = self.i_input.get_single_value()
                 logging.info("%s received ball number %d @ t = %.1f" % (self.name, job.count, self.clock))
                 self.current_job = job
                 self.hold_in(PHASE_SEND, self.proc_time)
@@ -75,7 +75,7 @@ class Player(Atomic):
     def lambdaf(self):
         if self.phase == PHASE_SEND:
             self.current_job.count += 1
-            self.o_output.add(self.current_job)
+            self.o_output.add_value(self.current_job)
 
     def exit(self):
         pass

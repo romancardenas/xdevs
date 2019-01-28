@@ -7,6 +7,7 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 class Port:
     def __init__(self, p_type=None, name=None, serve=False):
         self.name = name if name else self.__class__.__name__
@@ -24,23 +25,49 @@ class Port:
     def __str__(self):
         return "{Port(%s): [%s]}" % (self.p_type, self.values)
 
-    def empty(self):
+    def get_name(self):
+        return self.name
+
+    def is_empty(self):
         return not bool(self)
+
+    def empty(self):
+        """DEPRECATED IN ORDER TO USE THE SAME METHOD NAMES AMONG DIFFERENT XDEVS LANGUAGE IMPLEMENTATIONS"""
+        logging.warning("Port.empty method is deprecated. Use Port.is_empty instead")
+        return self.is_empty()
 
     def clear(self):
         self.values.clear()
 
-    def get(self):
+    def get_single_value(self):
         return self.values[0]
 
-    def add(self, val):
+    def get(self):
+        """DEPRECATED IN ORDER TO USE THE SAME METHOD NAMES AMONG DIFFERENT XDEVS LANGUAGE IMPLEMENTATIONS"""
+        logging.warning("Port.get method is deprecated. Use Port.get_single_value instead")
+        return self.get_single_value()
+
+    def get_values(self):
+        return self.values
+
+    def add_value(self, val):
         if type and not isinstance(val, self.p_type):
             raise TypeError("Value type is %s (%s expected)" % (type(val).__name__, self.p_type.__name__))
         self.values.append(val)
 
-    def extend(self, vals):
+    def add(self, val):
+        """DEPRECATED IN ORDER TO USE THE SAME METHOD NAMES AMONG DIFFERENT XDEVS LANGUAGE IMPLEMENTATIONS"""
+        logging.warning("Port.add method is deprecated. Use Port.add_value instead")
+        self.add_value(val)
+
+    def add_values(self, vals):
         for val in vals:
-            self.add(val)
+            self.add_value(val)
+
+    def extend(self, vals):
+        """DEPRECATED IN ORDER TO USE THE SAME METHOD NAMES AMONG DIFFERENT XDEVS LANGUAGE IMPLEMENTATIONS"""
+        logging.warning("Port.extend method is deprecated. Use Port.add_values instead")
+        self.add_values(vals)
 
 
 class Component(ABC):
@@ -63,19 +90,34 @@ class Component(ABC):
     def exit(self):
         pass
 
-    def in_empty(self):
-        return all([p.empty() for p in self.in_ports])
+    def is_input_empty(self):
+        return all([p.is_empty() for p in self.in_ports])
 
-    def out_empty(self):
-        return all([p.empty() for p in self.out_ports])
+    def in_empty(self):
+        """DEPRECATED IN ORDER TO USE THE SAME METHOD NAMES AMONG DIFFERENT XDEVS LANGUAGE IMPLEMENTATIONS"""
+        logging.warning("Component.in_empty method is deprecated. Use Component.is_input_empty instead")
+        return self.is_input_empty()
+
+    def is_output_empty(self):
+        return all([p.is_empty() for p in self.out_ports])
 
     def add_in_port(self, port):
         port.parent = self
         self.in_ports.append(port)
 
+    def get_in_port(self, name):
+        for port in self.in_ports:
+            if port.name == name:
+                return port
+
     def add_out_port(self, port):
         port.parent = self
         self.out_ports.append(port)
+
+    def get_out_port(self, name):
+        for port in self.out_ports:
+            if port.name == name:
+                return port
 
 
 class Coupling:
@@ -87,7 +129,7 @@ class Coupling:
     def __str__(self):
         return "(%s -> %s)" % (self.port_from, self.port_to)
 
-    def propagate(self):
+    def propagate_values(self):
         if self.host:
             if len(self.port_from.values) > 0:
                 values = list(map(lambda x: pickle.dumps(x, protocol=0).decode(), self.port_from.values))
@@ -96,7 +138,12 @@ class Coupling:
                 except:
                     logging.warning("Values could not be injected (%s)" % self.port_to)
         else:
-            self.port_to.extend(self.port_from.values)
+            self.port_to.add_values(self.port_from.values)
+
+    def propagate(self):
+        """DEPRECATED IN ORDER TO USE THE SAME METHOD NAMES AMONG DIFFERENT XDEVS LANGUAGE IMPLEMENTATIONS"""
+        logging.warning("Coupling.propagate method is deprecated. Use Coupling.propagate_values instead")
+        self.propagate_values()
 
 
 class Atomic(Component):
@@ -122,13 +169,13 @@ class Atomic(Component):
     def deltext(self, e):
         pass
 
-    @abstractmethod
-    def lambdaf(self):
-        pass
-
     def deltcon(self, e):
         self.deltint()
         self.deltext(e)
+
+    @abstractmethod
+    def lambdaf(self):
+        pass
 
     def hold_in(self, phase, sigma):
         self.phase = phase
@@ -158,21 +205,6 @@ class Coupled(Component):
 
     def exit(self):
         pass
-
-    def add_coupling(self, c_from, i_from, c_to, i_to):
-        """
-		This method add a connection to the DEVS component.
-		
-		:param Component c_from Component at the beginning of the connection
-		:param int i_from Index of the source port in c_from, starting at 0
-		:param Component c_to Component at the end of the connection
-		:param int i_to Index of the destination port in c_to, starting at 0
-		"""
-
-        ports_from = c_from.in_ports if c_from == self else c_from.out_ports
-        ports_to = c_to.out_ports if c_to == self else c_to.in_ports
-
-        return self.add_coupling(ports_from[i_from], ports_to[i_to])
 
     def add_coupling(self, p_from, p_to, host=None):
         coupling = Coupling(p_from, p_to, host)
